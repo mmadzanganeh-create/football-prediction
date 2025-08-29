@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <title>پیش‌بینی فوتبال حرفه‌ای - مدل پواسون</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #27ae60;
+            --accent: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #34495e;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Tahoma', 'Segoe UI', Arial, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+        
+        header {
+            background: var(--primary);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        header h1 {
+            margin-bottom: 10px;
+            font-size: 2.2em;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .form-section, .results-section {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: var(--dark);
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, select:focus {
+            border-color: var(--secondary);
+            outline: none;
+        }
+        
+        button {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            width: 100%;
+            transition: background 0.3s;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            background: #219653;
+        }
+        
+        .secondary-btn {
+            background: var(--dark);
+        }
+        
+        .secondary-btn:hover {
+            background: #2c3e50;
+        }
+        
+        .league-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .league-btn {
+            background: var(--light);
+            border: 2px solid #ddd;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        
+        .league-btn:hover, .league-btn.active {
+            background: var(--secondary);
+            color: white;
+            border-color: var(--secondary);
+        }
+        
+        .result-card {
+            background: var(--light);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--secondary);
+        }
+        
+        .probability-bar {
+            background: #ddd;
+            height: 20px;
+            border-radius: 10px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        
+        .probability-fill {
+            height: 100%;
+            background: var(--secondary);
+            border-radius: 10px;
+            transition: width 0.5s;
+        }
+        
+        .score-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .score-cell {
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #ddd;
+            font-weight: bold;
+        }
+        
+        .score-cell.high-prob {
+            background: var(--secondary);
+            color: white;
+        }
+        
+        .history-section {
+            margin-top: 20px;
+            padding: 20px;
+            background: var(--light);
+            border-radius: 10px;
+        }
+        
+        .history-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .tab-container {
+            margin: 20px 0;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 15px;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            background: #ddd;
+            cursor: pointer;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+        }
+        
+        .tab.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⚽ پیش‌بینی حرفه‌ای فوتبال</h1>
+            <p>پیش‌بینی نتایج با مدل پواسون و آنالیز آماری</p>
+        </header>
+
+        <div class="main-content">
+            <div class="form-section">
+                <h2>تنظیمات پیش‌بینی</h2>
+                
+                <div class="league-selector">
+                    <div class="league-btn active" data-league="premier">لیگ برتر</div>
+                    <div class="league-btn" data-league="laliga">لالیگا</div>
+                    <div class="league-btn" data-league="serie-a">سری آ</div>
+                    <div class="league-btn" data-league="custom">سفارشی</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="home_team">تیم میزبان</label>
+                    <select id="home_team">
+                        <option value="">انتخاب تیم میزبان</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="away_team">تیم مهمان</label>
+                    <select id="away_team">
+                        <option value="">انتخاب تیم مهمان</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="home_scored">میانگین گل زده میزبان</label>
+                    <input type="number" id="home_scored" step="0.1" value="1.8">
+                </div>
+                
+                <div class="form-group">
+                    <label for="home_conceded">میانگین گل خورده میزبان</label>
+                    <input type="number" id="home_conceded" step="0.1" value="0.9">
+                </div>
+                
+                <div class="form-group">
+                    <label for="away_scored">میانگین گل زده مهمان</label>
+                    <input type="number" id="away_scored" step="0.1" value="1.2">
+                </div>
+                
+                <div class="form-group">
+                    <label for="away_conceded">میانگین گل خورده مهمان</label>
+                    <input type="number" id="away_conceded" step="0.1" value="1.5">
+                </div>
+                
+                <button onclick="calculatePoisson()">محاسبه پیش‌بینی</button>
+                <button class="secondary-btn" onclick="savePrediction()">ذخیره پیش‌بینی</button>
+            </div>
+
+            <div class="results-section">
+                <h2>نتایج پیش‌بینی</h2>
+                
+                <div class="tab-container">
+                    <div class="tabs">
+                        <div class="tab active" data-tab="predictions">پیش‌بینی نتایج</div>
+                        <div class="tab" data-tab="odds">odds شرط‌بندی</div>
+                        <div class="tab" data-tab="stats">آمار پیشرفته</div>
+                    </div>
+                    
+                    <div class="tab-content active" id="predictions-tab">
+                        <div id="goal_expectancy" class="result-card"></div>
+                        <div id="outcome_probability" class="result-card"></div>
+                        <div id="score_probabilities"></div>
+                    </div>
+                    
+                    <div class="tab-content" id="odds-tab">
+                        <div class="result-card">
+                            <h3>odds شرط‌بندی</h3>
+                            <div id="betting_odds"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-content" id="stats-tab">
+                        <div class="result-card">
+                            <h3>آمار پیشرفته</h3>
+                            <div id="advanced_stats"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="history-section">
+                    <h3>تاریخچه پیش‌بینی‌ها</h3>
+                    <div id="prediction_history"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // داده‌های نمونه برای لیگ‌های مختلف
+        const leagueData = {
+            'premier': {
+                name: 'لیگ برتر ایران',
+                teams: [
+                    {name: 'پرسپولیس', scored: 1.9, conceded: 0.8},
+                    {name: 'استقلال', scored: 1.7, conceded: 0.9},
+                    {name: 'تراکتور', scored: 1.5, conceded: 1.1},
+                    {name: 'سپاهان', scored: 1.8, conceded: 0.7}
+                ]
+            },
+            'laliga': {
+                name: 'لالیگا اسپانیا',
+                teams: [
+                    {name: 'رئال مادرید', scored: 2.1, conceded: 0.8},
+                    {name: 'بارسلونا', scored: 2.3, conceded: 0.9},
+                    {name: 'آتلتیکو مادرید', scored: 1.7, conceded: 0.7},
+                    {name: 'سویا', scored: 1.5, conceded: 1.2}
+                ]
+            },
+            'serie-a': {
+                name: 'سری آ ایتالیا',
+                teams: [
+                    {name: 'یوونتوس', scored: 1.9, conceded: 0.8},
+                    {name: 'اینتر', scored: 2.0, conceded: 0.9},
+                    {name: 'میلان', scored: 1.8, conceded: 1.0},
+                    {name: 'ناپولی', scored: 1.7, conceded: 1.1}
+                ]
+            }
+        };
+
+        // توابع اصلی
+        function factorial(n) {
+            if (n === 0 || n === 1) return 1;
+            let result = 1;
+            for (let i = 2; i <= n; i++) {
+                result *= i;
+            }
+            return result;
+        }
+        
+        function poissonProbability(mean, k) {
+            return (Math.pow(mean, k) * Math.exp(-mean)) / factorial(k);
+        }
+
+        // توابع جدید برای ویژگی‌های پیشرفته
+        function calculateBettingOdds(probabilities) {
+            const homeWin = (1 / probabilities.homeWin * 0.9).toFixed(2);
+            const draw = (1 / probabilities.draw * 0.9).toFixed(2);
+            const awayWin = (1 / probabilities.awayWin * 0.9).toFixed(2);
+            
+            return {
+                homeWin,
+                draw,
+                awayWin,
+                recommended: probabilities.homeWin > 0.5 ? 'میزبان' : 
+                            probabilities.awayWin > 0.5 ? 'مهمان' : 'تساوی'
+            };
+        }
+
+        function savePrediction() {
+            const prediction = {
+                date: new Date().toLocaleString('fa-IR'),
+                homeScored: document.getElementById('home_scored').value,
+                homeConceded: document.getElementById('home_conceded').value,
+                awayScored: document.getElementById('away_scored').value,
+                awayConceded: document.getElementById('away_conceded').value,
+                homeTeam: document.getElementById('home_team').value,
+                awayTeam: document.getElementById('away_team').value
+            };
+            
+            let history = JSON.parse(localStorage.getItem('predictionHistory') || '[]');
+            history.unshift(prediction);
+            localStorage.setItem('predictionHistory', JSON.stringify(history));
+            
+            loadHistory();
+            alert('پیش‌بینی با موفقیت ذخیره شد!');
+        }
+
+        function loadHistory() {
+            const history = JSON.parse(localStorage.getItem('predictionHistory') || '[]');
+            const historyContainer = document.getElementById('prediction_history');
+            
+            historyContainer.innerHTML = history.length === 0 ? 
+                '<p>هیچ پیش‌بینی ذخیره شده‌ای وجود ندارد</p>' :
+                history.slice(0, 5).map((item, index) => `
+                    <div class="history-item">
+                        <strong>${item.date}</strong><br>
+                        ${item.homeTeam || 'میزبان'} ${item.homeScored}-${item.homeConceded} | 
+                        ${item.awayTeam || 'مهمان'} ${item.awayScored}-${item.awayConceded}
+                    </div>
+                `).join('');
+        }
+
+        // تابع اصلی محاسبات
+        function calculatePoisson() {
+            const homeScored = parseFloat(document.getElementById('home_scored').value);
+            const homeConceded = parseFloat(document.getElementById('home_conceded').value);
+            const awayScored = parseFloat(document.getElementById('away_scored').value);
+            const awayConceded = parseFloat(document.getElementById('away_conceded').value);
+            
+            const homeGoalExpectancy = homeScored * awayConceded;
+            const awayGoalExpectancy = awayScored * homeConceded;
+            
+            // نمایش میانگین گل‌های مورد انتظار
+            document.getElementById('goal_expectancy').innerHTML = `
+                <h3>میانگین گل‌های مورد انتظار:</h3>
+                <p>میزبان: <strong>${homeGoalExpectancy.toFixed(2)}</strong></p>
+                <p>مهمان: <strong>${awayGoalExpectancy.toFixed(2)}</strong></p>
+            `;
+            
+            // محاسبه احتمالات
+            let homeWinProb = 0;
+            let drawProb = 0;
+            let awayWinProb = 0;
+            let maxGoals = 5;
+            
+            let scoreTableHTML = `
+                <h3>احتمال نتایج مختلف:</h3>
+                <div class="score-grid">
+            `;
+            
+            for (let i = 0; i <= maxGoals; i++) {
+                for (let j = 0; j <= maxGoals; j++) {
+                    const prob = poissonProbability(homeGoalExpectancy, i) * 
+                                 poissonProbability(awayGoalExpectancy, j);
+                    
+                    if (prob >= 0.005) {
+                        scoreTableHTML += `
+                            <div class="score-cell ${prob > 0.05 ? 'high-prob' : ''}">
+                                ${i}-${j}<br>
+                                <small>${(prob * 100).toFixed(1)}%</small>
+                            </div>
+                        `;
+                    }
+                    
+                    if (i > j) homeWinProb += prob;
+                    else if (i === j) drawProb += prob;
+                    else awayWinProb += prob;
+                }
+            }
+            
+            scoreTableHTML += '</div>';
+            document.getElementById('score_probabilities').innerHTML = scoreTableHTML;
+            
+            // نمایش احتمال کلی نتایج
+            document.getElementById('outcome_probability').innerHTML = `
+                <h3>احتمال کلی نتایج:</h3>
+                <div class="probability-bar">
+                    <div class="probability-fill" style="width: ${homeWinProb * 100}%"></div>
+                </div>
+                <p>برد میزبان: <strong>${(homeWinProb * 100).toFixed(2)}%</strong></p>
+                
+                <div class="probability-bar">
+                    <div class="probability-fill" style="width: ${drawProb * 100}%"></div>
+                </div>
+                <p>تساوی: <strong>${(drawProb * 100).toFixed(2)}%</strong></p>
+                
+                <div class="probability-bar">
+                    <div class="probability-fill" style="width: ${awayWinProb * 100}%"></div>
+                </div>
+                <p>برد مهمان: <strong>${(awayWinProb * 100).toFixed(2)}%</strong></p>
+            `;
+            
+            // محاسبه odds شرط‌بندی
+            const odds = calculateBettingOdds({
+                homeWin: homeWinProb,
+                draw: drawProb,
+                awayWin: awayWinProb
+            });
+            
+            document.getElementById('betting_odds').innerHTML = `
+                <p>برد میزبان: <strong>${odds.homeWin}</strong></p>
+                <p>تساوی: <strong>${odds.draw}</strong></p>
+                <p>برد مهمان: <strong>${odds.awayWin}</strong></p>
+                <p>پیشنهاد: <strong>${odds.recommended}</strong></p>
+            `;
+            
+            // نمایش بخش نتایج
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.getElementById('predictions-tab').classList.add('active');
+        }
+
+        // مدیریت تب‌ها
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab + '-tab').classList.add('active');
+            });
+        });
+
+        // مدیریت انتخاب لیگ
+        document.querySelectorAll('.league-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.league-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                if (btn.dataset.league !== 'custom') {
+                    loadLeagueData(btn.dataset.league);
+                }
+            });
+        });
+
+        function loadLeagueData(league) {
+            const data = leagueData[league];
+            const homeSelect = document.getElementById('home_team');
+            const awaySelect = document.getElementById('away_team');
+            
+            homeSelect.innerHTML = '<option value="">انتخاب تیم میزبان</option>';
+            awaySelect.innerHTML = '<option value="">انتخاب تیم مهمان</option>';
+            
+            data.teams.forEach(team => {
+                homeSelect.innerHTML += `<option value="${team.name}">${team.name}</option>`;
+                awaySelect.innerHTML += `<option value="${team.name}">${team.name}</option>`;
+            });
+            
+            // اضافه کردن event listener برای تغییر آمار هنگام انتخاب تیم
+            homeSelect.addEventListener('change', updateStatsFromTeam);
+            awaySelect.addEventListener('change', updateStatsFromTeam);
+        }
+
+        function updateStatsFromTeam() {
+            const homeTeam = document.getElementById('home_team').value;
+            const awayTeam = document.getElementById('away_team').value;
+            
+            if (homeTeam) {
+                const league = document.querySelector('.league-btn.active').dataset.league;
+                const teamData = leagueData[league].teams.find(t => t.name === homeTeam);
+                if (teamData) {
+                    document.getElementById('home_scored').value = teamData.scored;
+                    document.getElementById('home_conceded').value = teamData.conceded;
+                }
+            }
+            
+            if (awayTeam) {
+                const league = document.querySelector('.league-btn.active').dataset.league;
+                const teamData = leagueData[league].teams.find(t => t.name === awayTeam);
+                if (teamData) {
+                    document.getElementById('away_scored').value = teamData.scored;
+                    document.getElementById('away_conceded').value = teamData.conceded;
+                }
+            }
+        }
+
+        // مقداردهی اولیه
+        window.onload = function() {
+            loadLeagueData('premier');
+            calculatePoisson();
+            loadHistory();
+        };
+    </script>
+</body>
+</html>
